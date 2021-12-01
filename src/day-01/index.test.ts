@@ -1,39 +1,36 @@
+import { readFile } from 'fs/promises'
+import { resolve } from 'path'
 import { createIncreaseCounter } from '.'
-import * as fs from 'fs'
-import * as path from 'path'
+import { sum } from '../utils'
 
-const sampleInput = () =>
-  fs.promises.readFile(path.resolve(__dirname, 'sampleInput.txt'), 'utf-8')
+const readFileAsString = (fileName: string) =>
+  readFile(resolve(__dirname, fileName), 'utf-8')
 
-const puzzleInput = () =>
-  fs.promises.readFile(path.resolve(__dirname, 'puzzleInput.txt'), 'utf-8')
+test.each([
+  ['sampleInput.txt', 7],
+  ['puzzleInput.txt', 1655],
+])('solves part 1 for %s', async (fileName, expected) => {
+  const input = await readFileAsString(fileName)
+  const totalIncreases = createIncreaseCounter(
+    ({ currentValue, values, index }) => {
+      const previousValue = values[index - 1]
+      return currentValue > previousValue
+    }
+  )
 
-const totalIncreases = createIncreaseCounter(
-  ({ currentValue, values, index }) => {
-    const previousValue = values[index - 1]
-    return currentValue > previousValue
-  }
-)
-
-const totalIncreasesWindow = createIncreaseCounter(({ values, index }) => {
-  const sum = (array: number[]): number => array.reduce((a, b) => a + b, 0)
-  const previousValues = [values[index - 1], values[index], values[index + 1]]
-  const currentValues = [values[index], values[index + 1], values[index + 2]]
-  return sum(currentValues) > sum(previousValues)
+  expect(totalIncreases(input)).toEqual(expected)
 })
 
-test('solves part 1 sample input', async () => {
-  expect(totalIncreases(await sampleInput())).toEqual(7)
-})
+test.each([
+  ['sampleInput.txt', 5],
+  ['puzzleInput.txt', 1683],
+])('solves part 2 for %s', async (fileName, expected) => {
+  const input = await readFileAsString(fileName)
+  const totalIncreasesWindow = createIncreaseCounter(({ values, index }) => {
+    const previousValues = [values[index - 1], values[index], values[index + 1]]
+    const currentValues = [values[index], values[index + 1], values[index + 2]]
+    return sum(currentValues) > sum(previousValues)
+  })
 
-test('solves part 1 puzzle input', async () => {
-  expect(totalIncreases(await puzzleInput())).toEqual(1655)
-})
-
-test('solves part 2 sample input', async () => {
-  expect(totalIncreasesWindow(await sampleInput())).toEqual(5)
-})
-
-test('solves part 2 puzzle input', async () => {
-  expect(totalIncreasesWindow(await puzzleInput())).toEqual(1683)
+  expect(totalIncreasesWindow(input)).toEqual(expected)
 })
