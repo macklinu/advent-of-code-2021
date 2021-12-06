@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { columns } from '../utils'
 
 interface PowerConsumption {
   gammaRate: number
@@ -34,15 +35,17 @@ class BitCounter {
 
 export function calculatePowerConsumption(input: string): PowerConsumption {
   const values = parseInput(input)
-  const splits = values.map((v) => v.split('') as Bit[])
-  const bitCounters: BitCounter[] = []
+  const bits = values.map((v) => v.split('') as Bit[])
 
-  for (let i = 0; i < values[0].length; i++) {
-    const columnValues = splits.map((v) => v[i])
-    const bitCounter = new BitCounter()
-    bitCounter.countAll(columnValues)
-    bitCounters.push(bitCounter)
-  }
+  const bitCounters = columns(bits).reduce<BitCounter[]>(
+    (bitCounters, column) => {
+      const bitCounter = new BitCounter()
+      bitCounter.countAll(column)
+      bitCounters.push(bitCounter)
+      return bitCounters
+    },
+    []
+  )
 
   const gammaRate = binaryToDecimal(
     bitCounters.map(({ mostCommonBit }) => mostCommonBit).join('')

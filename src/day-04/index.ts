@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { stringToNumber, sum } from '../utils'
+import { columns, stringToNumber, sum } from '../utils'
 
 type Board = number[][]
 
@@ -7,11 +7,9 @@ class BoardChecker {
   private readonly seen: Set<number> = new Set()
   private readonly matches: Set<number> = new Set()
   private readonly flattenedBoard: Set<number> = new Set()
-  private readonly rowLength: number
 
   constructor(private readonly board: Board) {
     this.flattenedBoard = new Set(board.flatMap((b) => b))
-    this.rowLength = this.board[0].length
   }
 
   mark(number: number): void {
@@ -36,13 +34,9 @@ class BoardChecker {
   }
 
   private get hasBingoColumn(): boolean {
-    for (let i = 0; i < this.rowLength; i++) {
-      const column = this.board.map((row) => row[i])
-      if (column.every((number) => this.seen.has(number))) {
-        return true
-      }
-    }
-    return false
+    return columns(this.board).some((column) =>
+      column.every((number) => this.seen.has(number))
+    )
   }
 }
 
