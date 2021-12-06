@@ -1,9 +1,11 @@
 import { z } from 'zod'
+import * as crypto from 'crypto'
 import { columns, stringToNumber, sum } from '../utils'
 
 type Board = number[][]
 
 class BoardChecker {
+  public readonly id: string = crypto.randomBytes(16).toString('hex')
   private readonly seen: Set<number> = new Set()
   private readonly matches: Set<number> = new Set()
   private readonly flattenedBoard: Set<number> = new Set()
@@ -40,24 +42,29 @@ class BoardChecker {
   }
 }
 
-export function calculateFinalScoreOfWinningBoard(input: string): number {
+export function calculateFinalScoresOfWinningBoard(input: string): number[] {
   const { numbers, boards } = parseInput(input)
-
+  const winningScores: number[] = []
   const boardCheckers = boards.map((board) => new BoardChecker(board))
+  const completedBoards = new Set<string>()
 
   for (let i = 0; i < numbers.length; i++) {
     const number = numbers[i]
     for (let j = 0; j < boardCheckers.length; j++) {
       const checker = boardCheckers[j]
+      if (completedBoards.has(checker.id)) {
+        continue
+      }
 
       checker.mark(number)
       if (checker.hasBingo) {
-        return sum(checker.unmarked) * number
+        winningScores.push(sum(checker.unmarked) * number)
+        completedBoards.add(checker.id)
       }
     }
   }
 
-  return -1
+  return winningScores
 }
 
 function parseInput(input: string) {

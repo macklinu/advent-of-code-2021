@@ -1,6 +1,7 @@
 import { readFile } from 'fs/promises'
 import { resolve } from 'path'
-import { calculateFinalScoreOfWinningBoard } from '.'
+import { calculateFinalScoresOfWinningBoard } from '.'
+import { last } from '../utils'
 
 const readFileAsString = (fileName: string) =>
   readFile(resolve(__dirname, fileName), 'utf-8')
@@ -11,7 +12,18 @@ test.each([
 ])('solves part 1 for %s', async (fileName, expected) => {
   const input = await readFileAsString(fileName)
 
-  const finalScore = calculateFinalScoreOfWinningBoard(input)
+  const [firstWinningScore] = calculateFinalScoresOfWinningBoard(input)
 
-  expect(finalScore).toEqual(expected)
+  expect(firstWinningScore).toEqual(expected)
+})
+
+test.each([
+  ['sampleInput.txt', 1924],
+  ['puzzleInput.txt', 4624],
+])('solves part 2 for %s', async (fileName, expected) => {
+  const input = await readFileAsString(fileName)
+
+  const winningScores = calculateFinalScoresOfWinningBoard(input)
+
+  expect(last(winningScores)).toEqual(expected)
 })
